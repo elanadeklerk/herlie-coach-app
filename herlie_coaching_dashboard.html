@@ -1,0 +1,472 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .app { display: flex; height: 100vh; min-height: 700px; background: var(--color-background-tertiary); overflow: hidden; }
+  .sidebar { width: 220px; min-width: 220px; background: var(--color-background-primary); border-right: 0.5px solid var(--color-border-tertiary); display: flex; flex-direction: column; padding: 16px 0; }
+  .logo { padding: 0 16px 20px; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 12px; }
+  .logo-mark { font-size: 15px; font-weight: 500; color: var(--color-text-primary); letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .nav-label { font-size: 10px; color: var(--color-text-tertiary); padding: 8px 16px 4px; letter-spacing: 0.6px; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: background 0.15s; border-radius: 0; }
+  .nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .nav-item.active { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
+  .nav-item i { font-size: 16px; }
+  .client-list { flex: 1; overflow-y: auto; padding: 0 8px; margin-top: 4px; }
+  .client-item { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: var(--border-radius-md); cursor: pointer; transition: background 0.15s; }
+  .client-item:hover { background: var(--color-background-secondary); }
+  .client-item.active { background: var(--color-background-secondary); }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .av-blue { background: #E6F1FB; color: #0C447C; }
+  .av-teal { background: #E1F5EE; color: #085041; }
+  .av-coral { background: #FAECE7; color: #712B13; }
+  .av-purple { background: #EEEDFE; color: #3C3489; }
+  .av-amber { background: #FAEEDA; color: #633806; }
+  .client-name { font-size: 13px; color: var(--color-text-primary); }
+  .client-status { font-size: 11px; color: var(--color-text-tertiary); }
+  .flag-dot { width: 6px; height: 6px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+  .flag-green { background: #639922; }
+  .flag-amber { background: #BA7517; }
+  .flag-red { background: #E24B4A; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 12px 20px; display: flex; align-items: center; gap: 12px; }
+  .topbar-avatar { width: 36px; height: 36px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #0C447C; }
+  .topbar-info { flex: 1; }
+  .topbar-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .topbar-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .badge { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); font-weight: 500; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .content { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .metric-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .metric-sub.up { color: #3B6D11; }
+  .metric-sub.down { color: #A32D2D; }
+  .section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .section-action { font-size: 12px; color: var(--color-text-tertiary); cursor: pointer; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .checkin-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+  .checkin-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .checkin-label { color: var(--color-text-secondary); }
+  .checkin-val { font-weight: 500; color: var(--color-text-primary); }
+  .bar-row { margin-bottom: 8px; }
+  .bar-label-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .bar-track { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .ai-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ai-header { display: flex; align-items: center; gap: 8px; }
+  .ai-icon { width: 28px; height: 28px; border-radius: var(--border-radius-md); background: #EEEDFE; display: flex; align-items: center; justify-content: center; }
+  .ai-icon i { font-size: 16px; color: #3C3489; }
+  .ai-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .ai-subtitle { font-size: 11px; color: var(--color-text-tertiary); }
+  .ai-summary { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .ai-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ai-tag { font-size: 11px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .coach-input-area { display: flex; flex-direction: column; gap: 8px; }
+  .coach-label { font-size: 12px; color: var(--color-text-secondary); }
+  .coach-textarea { width: 100%; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); font-size: 13px; padding: 8px 10px; resize: none; height: 64px; }
+  .coach-textarea:focus { outline: none; border-color: var(--color-border-secondary); }
+  .coach-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn { font-size: 12px; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; font-family: var(--font-sans); transition: background 0.15s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: var(--color-background-primary); border: 0.5px solid var(--color-border-primary); color: var(--color-text-primary); font-weight: 500; }
+  .btn-primary:hover { background: var(--color-background-secondary); }
+  .recs { display: flex; flex-direction: column; gap: 7px; }
+  .rec-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+  .rec-icon { font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+  .rec-cat { font-size: 11px; font-weight: 500; margin-bottom: 2px; }
+  .rec-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+  .rec-diet .rec-icon { color: #3B6D11; } .rec-diet { background: #EAF3DE22; border-color: #C0DD9760; }
+  .rec-training .rec-icon { color: #185FA5; } .rec-training { background: #E6F1FB22; border-color: #B5D4F460; }
+  .rec-rest .rec-icon { color: #854F0B; } .rec-rest { background: #FAEEDA22; border-color: #FAC77560; }
+  .rec-comms .rec-icon { color: #533AB7; } .rec-comms { background: #EEEDFE22; border-color: #CECBF660; }
+  .ai-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-tertiary); padding: 8px 0; }
+  .dot-pulse { display: flex; gap: 4px; }
+  .dot-pulse span { width: 5px; height: 5px; border-radius: 50%; background: var(--color-text-tertiary); animation: pulse 1.2s infinite ease-in-out; }
+  .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+  .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,80%,100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+  .hidden { display: none !important; }
+  .client-message-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+  .client-msg-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+  .client-msg-text { font-size: 13px; color: var(--color-text-secondary); line-height: 1.55; font-style: italic; }
+</style>
+
+<h2 class="sr-only">Herlie Coaching Dashboard — client overview and AI-powered analysis tool</h2>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Herlie Coaching</div>
+      <div class="logo-sub">Coach Dashboard</div>
+    </div>
+    <div class="nav-label">Menu</div>
+    <div class="nav-item active"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+    <div class="nav-item"><i class="ti ti-users" aria-hidden="true"></i> All Clients</div>
+    <div class="nav-item"><i class="ti ti-chart-line" aria-hidden="true"></i> Analytics</div>
+    <div class="nav-item"><i class="ti ti-settings" aria-hidden="true"></i> Settings</div>
+    <div class="nav-label">Clients</div>
+    <div class="client-list">
+      <div class="client-item active" onclick="selectClient(0)">
+        <div class="avatar av-blue">JM</div>
+        <div><div class="client-name">Johan M.</div><div class="client-status">Week 8</div></div>
+        <div class="flag-dot flag-green"></div>
+      </div>
+      <div class="client-item" onclick="selectClient(1)">
+        <div class="avatar av-coral">SR</div>
+        <div><div class="client-name">Sara R.</div><div class="client-status">Week 3</div></div>
+        <div class="flag-dot flag-amber"></div>
+      </div>
+      <div class="client-item" onclick="selectClient(2)">
+        <div class="avatar av-teal">TK</div>
+        <div><div class="client-name">Thabo K.</div><div class="client-status">Week 12</div></div>
+        <div class="flag-dot flag-green"></div>
+      </div>
+      <div class="client-item" onclick="selectClient(3)">
+        <div class="avatar av-purple">NP</div>
+        <div><div class="client-name">Nicole P.</div><div class="client-status">Week 5</div></div>
+        <div class="flag-dot flag-red"></div>
+      </div>
+      <div class="client-item" onclick="selectClient(4)">
+        <div class="avatar av-amber">DS</div>
+        <div><div class="client-name">Danie S.</div><div class="client-status">Week 1</div></div>
+        <div class="flag-dot flag-green"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-avatar" id="tb-avatar">JM</div>
+      <div class="topbar-info">
+        <div class="topbar-name" id="tb-name">Johan Mostert</div>
+        <div class="topbar-meta" id="tb-meta">Goal: Fat loss · Week 8 of 16 · Last check-in: 2 days ago</div>
+      </div>
+      <span class="badge badge-green" id="tb-badge">On Track</span>
+    </div>
+
+    <div class="content">
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Current weight</div>
+          <div class="metric-value" id="m-weight">87.2 kg</div>
+          <div class="metric-sub down" id="m-weight-sub">↓ 0.4 kg this week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Diet adherence</div>
+          <div class="metric-value" id="m-diet">82%</div>
+          <div class="metric-sub up" id="m-diet-sub">↑ 7% vs last week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Training adherence</div>
+          <div class="metric-value" id="m-training">91%</div>
+          <div class="metric-sub up" id="m-training-sub">↑ 3% vs last week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Avg sleep</div>
+          <div class="metric-value" id="m-sleep">6.8 hrs</div>
+          <div class="metric-sub down" id="m-sleep-sub">↓ below target</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">Last check-in</div>
+            <div class="section-action" id="checkin-date">Mon 27 May</div>
+          </div>
+          <div class="checkin-row"><span class="checkin-label">Weight</span><span class="checkin-val" id="ci-weight">87.2 kg</span></div>
+          <div class="checkin-row"><span class="checkin-label">Sleep</span><span class="checkin-val" id="ci-sleep">6.5 hrs</span></div>
+          <div class="checkin-row"><span class="checkin-label">Stress</span><span class="checkin-val" id="ci-stress">3 / 5</span></div>
+          <div class="checkin-row"><span class="checkin-label">Diet score</span><span class="checkin-val" id="ci-diet">4 / 5</span></div>
+          <div class="checkin-row"><span class="checkin-label">Training score</span><span class="checkin-val" id="ci-training">5 / 5</span></div>
+          <div style="margin-top: 12px;">
+            <div class="client-message-box">
+              <div class="client-msg-label">Client message</div>
+              <div class="client-msg-text" id="ci-message">"Feeling good this week, training was solid. Diet was harder over the weekend — had a family braai. Sleep still not great."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title">4-week trends</div>
+          </div>
+          <div id="trend-bars"></div>
+        </div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-header">
+          <div class="ai-icon"><i class="ti ti-brain" aria-hidden="true"></i></div>
+          <div>
+            <div class="ai-title">AI Analysis</div>
+            <div class="ai-subtitle" id="ai-status-label">Ready to analyse</div>
+          </div>
+          <div style="margin-left: auto; display: flex; gap: 8px; align-items: center;">
+            <div class="ai-tags" id="ai-flags-row"></div>
+            <button class="btn btn-primary" onclick="runAnalysis()" id="analyse-btn"><i class="ti ti-sparkles" aria-hidden="true"></i> Analyse ↗</button>
+          </div>
+        </div>
+
+        <div class="ai-loading hidden" id="ai-loader">
+          <div class="dot-pulse"><span></span><span></span><span></span></div>
+          <span>Synthesising client data...</span>
+        </div>
+
+        <div class="ai-summary hidden" id="ai-summary-box"></div>
+
+        <div class="hidden" id="ai-recs-section">
+          <div style="font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 8px; margin-top: 4px;">Recommendations</div>
+          <div class="recs" id="ai-recs"></div>
+        </div>
+
+        <div class="hidden" id="coach-feedback-section">
+          <div style="border-top: 0.5px solid var(--color-border-tertiary); padding-top: 12px;">
+            <div class="coach-input-area">
+              <div class="coach-label"><i class="ti ti-message-2" aria-hidden="true"></i> Add your observation — AI will refine its direction</div>
+              <textarea class="coach-textarea" id="coach-input" placeholder="e.g. He mentioned work stress is peaking this month, and I noticed he's been skipping his Sunday session..."></textarea>
+              <div class="coach-actions">
+                <button class="btn" onclick="clearFeedback()">Clear</button>
+                <button class="btn btn-primary" onclick="refineAnalysis()">Refine direction ↗</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const clients = [
+  {
+    initials: 'JM', name: 'Johan Mostert', avClass: 'av-blue',
+    meta: 'Goal: Fat loss · Week 8 of 16 · Last check-in: 2 days ago',
+    badge: ['On Track', 'badge-green'],
+    metrics: ['87.2 kg', '82%', '91%', '6.8 hrs'],
+    metaSubs: [['↓ 0.4 kg this week','down'],['↑ 7% vs last week','up'],['↑ 3% vs last week','up'],['↓ below target','down']],
+    checkin: { date: 'Mon 27 May', weight: '87.2 kg', sleep: '6.5 hrs', stress: '3 / 5', diet: '4 / 5', training: '5 / 5' },
+    message: '"Feeling good this week, training was solid. Diet was harder over the weekend — had a family braai. Sleep still not great."',
+    trends: [{ label: 'Diet adherence', vals: [68, 72, 75, 82] }, { label: 'Training adherence', vals: [80, 85, 88, 91] }, { label: 'Sleep (hrs/8)', vals: [75, 72, 78, 85] }],
+    aiSummary: 'Johan is progressing well. Training adherence is excellent at 91% and trending upward. Diet adherence has improved 7% week-on-week — notable given the social weekend event. Sleep remains the key underperformer at 6.8 hrs vs a 7.5 hr target. Weight loss is on track at ~0.4 kg/week. No red flags. Main lever to pull is sleep hygiene.',
+    flags: ['Sleep 🔸', 'Diet WE ⚠️'],
+    recs: [
+      { cat: 'Diet', type: 'rec-diet', icon: 'ti-salad', text: 'Maintain current protocol. Allow 1 flexible meal on weekends — pre-agree the meal to reduce decision fatigue at social events.' },
+      { cat: 'Training', type: 'rec-training', icon: 'ti-barbell', text: 'Training load is appropriate. Consider a deload in week 10 given the sustained high adherence.' },
+      { cat: 'Rest', type: 'rec-rest', icon: 'ti-moon', text: 'Set a hard phone cutoff at 22:00. Sleep is the only metric underperforming — this is the highest-impact intervention right now.' },
+      { cat: 'Communication', type: 'rec-comms', icon: 'ti-message-circle', text: 'Positive check-in tone. Acknowledge the weekend braai win — he stayed on track. Reinforce the identity shift.' }
+    ]
+  },
+  {
+    initials: 'SR', name: 'Sara Rossouw', avClass: 'av-coral',
+    meta: 'Goal: Muscle gain · Week 3 of 12 · Last check-in: 4 days ago',
+    badge: ['Needs Attention', 'badge-amber'],
+    metrics: ['62.1 kg', '61%', '70%', '7.2 hrs'],
+    metaSubs: [['→ no change',''],['↓ 12% vs last week','down'],['↓ 8% vs last week','down'],['→ on target','up']],
+    checkin: { date: 'Thu 23 May', weight: '62.1 kg', sleep: '7.0 hrs', stress: '4 / 5', diet: '3 / 5', training: '3 / 5' },
+    message: '"Stressed at work, missed two sessions. Diet went off rails mid-week. Feeling overwhelmed and behind."',
+    trends: [{ label: 'Diet adherence', vals: [80, 75, 73, 61] }, { label: 'Training adherence', vals: [85, 82, 78, 70] }, { label: 'Sleep (hrs/8)', vals: [82, 88, 90, 90] }],
+    aiSummary: 'Sara is showing a consistent downward trend across diet and training over 4 weeks. High stress (4/5) is clearly the driver — she flagged it herself. Sleep is actually good, which is a positive anchor. The drop from week 1 to week 3 is significant and needs a direct intervention before it becomes a pattern.',
+    flags: ['Stress 🔴', 'Dropout risk ⚠️'],
+    recs: [
+      { cat: 'Diet', type: 'rec-diet', icon: 'ti-salad', text: 'Simplify the plan immediately. Reduce decision points — give her 3 pre-built meal options that require no thinking on high-stress days.' },
+      { cat: 'Training', type: 'rec-training', icon: 'ti-barbell', text: 'Drop to 2 mandatory sessions this week instead of 4. Lower the bar to rebuild momentum. Wins matter more than volume right now.' },
+      { cat: 'Rest', type: 'rec-rest', icon: 'ti-moon', text: 'Sleep is her strongest metric — lean into this. Acknowledge it as evidence she can stick to habits.' },
+      { cat: 'Communication', type: 'rec-comms', icon: 'ti-message-circle', text: 'Schedule a direct check-in call this week. She used the word "overwhelmed" — this needs a human touch, not just a message.' }
+    ]
+  },
+  {
+    initials: 'TK', name: 'Thabo Khumalo', avClass: 'av-teal',
+    meta: 'Goal: Performance · Week 12 of 20 · Last check-in: 1 day ago',
+    badge: ['On Track', 'badge-green'],
+    metrics: ['79.5 kg', '93%', '96%', '7.9 hrs'],
+    metaSubs: [['↓ 0.2 kg this week','down'],['↑ 2% vs last week','up'],['→ consistent','up'],['↑ above target','up']],
+    checkin: { date: 'Sun 26 May', weight: '79.5 kg', sleep: '8.0 hrs', stress: '2 / 5', diet: '5 / 5', training: '5 / 5' },
+    message: '"Feeling the best I have in months. PB on squats this week. Eating is dialled in."',
+    trends: [{ label: 'Diet adherence', vals: [88, 90, 91, 93] }, { label: 'Training adherence', vals: [92, 94, 95, 96] }, { label: 'Sleep (hrs/8)', vals: [90, 92, 95, 99] }],
+    aiSummary: 'Thabo is performing at an elite adherence level across all three pillars. 96% training adherence over 12 weeks is exceptional. All metrics trending positively. The main strategic question at this stage is: how do you peak him correctly for the final 8 weeks without overtraining or losing the psychological momentum he has built.',
+    flags: ['Overtraining risk 🔸'],
+    recs: [
+      { cat: 'Diet', type: 'rec-diet', icon: 'ti-salad', text: 'No changes needed. Consider increasing carbohydrates slightly to fuel the performance peak in weeks 14–18.' },
+      { cat: 'Training', type: 'rec-training', icon: 'ti-barbell', text: 'Plan a structured deload in week 14. At 96% intensity for 12 weeks, the body needs a deliberate reset before the final push.' },
+      { cat: 'Rest', type: 'rec-rest', icon: 'ti-moon', text: 'Sleep is excellent. Protect this at all costs — it is his biggest recovery asset.' },
+      { cat: 'Communication', type: 'rec-comms', icon: 'ti-message-circle', text: 'Celebrate the PB. Set a clear performance target for week 20 together — give him something specific to aim at.' }
+    ]
+  },
+  {
+    initials: 'NP', name: 'Nicole Pieterse', avClass: 'av-purple',
+    meta: 'Goal: Weight loss · Week 5 of 12 · Last check-in: 6 days ago',
+    badge: ['At Risk', 'badge-red'],
+    metrics: ['74.8 kg', '44%', '50%', '5.9 hrs'],
+    metaSubs: [['→ no change 3 wks','down'],['↓ 20% vs last week','down'],['↓ 15% vs last week','down'],['↓ critical','down']],
+    checkin: { date: 'Tue 21 May', weight: '74.8 kg', sleep: '5.5 hrs', stress: '5 / 5', diet: '2 / 5', training: '2 / 5' },
+    message: '"I know I have been bad. Just can\'t seem to get going. Everything feels hard right now."',
+    trends: [{ label: 'Diet adherence', vals: [70, 65, 58, 44] }, { label: 'Training adherence', vals: [75, 68, 62, 50] }, { label: 'Sleep (hrs/8)', vals: [68, 65, 60, 74] }],
+    aiSummary: 'Nicole is in a full regression pattern. All metrics are declining across 5 weeks with no plateau. The language in her check-in ("can\'t seem to get going", "everything feels hard") signals this may be beyond adherence strategy — there could be an underlying wellbeing issue. This client needs immediate direct contact and a plan reassessment.',
+    flags: ['Critical 🔴', 'Wellbeing ⚠️', 'No check-in 6d 🔴'],
+    recs: [
+      { cat: 'Diet', type: 'rec-diet', icon: 'ti-salad', text: 'Completely strip the plan. One simple rule only: eat mostly protein and vegetables. Remove all complexity until momentum returns.' },
+      { cat: 'Training', type: 'rec-training', icon: 'ti-barbell', text: 'Replace formal sessions with a daily 20-minute walk. Remove the gym barrier entirely. Rebuild the habit from the ground up.' },
+      { cat: 'Rest', type: 'rec-rest', icon: 'ti-moon', text: 'Sleep at 5.9 hrs is compounding every other issue. Make sleep the only focus for the next 7 days.' },
+      { cat: 'Communication', type: 'rec-comms', icon: 'ti-message-circle', text: 'Do not send a text. Call her. Her message has signals of emotional withdrawal — this needs real human connection before any coaching can happen.' }
+    ]
+  },
+  {
+    initials: 'DS', name: 'Danie Steyn', avClass: 'av-amber',
+    meta: 'Goal: Body recomp · Week 1 of 16 · Last check-in: 1 day ago',
+    badge: ['New Client', 'badge-green'],
+    metrics: ['92.4 kg', '78%', '85%', '7.1 hrs'],
+    metaSubs: [['Baseline',''],['Week 1 baseline',''],['Week 1 baseline',''],['→ on target','up']],
+    checkin: { date: 'Sun 26 May', weight: '92.4 kg', sleep: '7.0 hrs', stress: '2 / 5', diet: '4 / 5', training: '4 / 5' },
+    message: '"Really motivated and keen to get going. Enjoyed the first week. Diet was hard but manageable."',
+    trends: [{ label: 'Diet adherence', vals: [0, 0, 0, 78] }, { label: 'Training adherence', vals: [0, 0, 0, 85] }, { label: 'Sleep (hrs/8)', vals: [0, 0, 0, 89] }],
+    aiSummary: 'Danie is a new client with strong week 1 numbers. High motivation and a positive attitude. 78% diet adherence and 85% training adherence in week 1 is above average for a new client. The risk with new clients is the week 3–4 motivation dip when novelty wears off. Set expectations now and build accountability structures early.',
+    flags: ['New 🟢', 'Watch W3–4 🔸'],
+    recs: [
+      { cat: 'Diet', type: 'rec-diet', icon: 'ti-salad', text: 'Keep the plan simple for weeks 1–4. No changes yet. Let him build the habit first before optimising.' },
+      { cat: 'Training', type: 'rec-training', icon: 'ti-barbell', text: 'Good start. Introduce progressive overload in week 3. Do not increase intensity too fast — protect his joints and confidence.' },
+      { cat: 'Rest', type: 'rec-rest', icon: 'ti-moon', text: 'Sleep is adequate. Set a target of 7.5 hrs as a weekly goal going into week 2.' },
+      { cat: 'Communication', type: 'rec-comms', icon: 'ti-message-circle', text: 'High-touch communication in weeks 1–6. Message him twice a week. New clients who feel seen in month 1 have significantly higher retention.' }
+    ]
+  }
+];
+
+let activeIdx = 0;
+let analysisRun = false;
+
+function selectClient(idx) {
+  activeIdx = idx;
+  analysisRun = false;
+  document.querySelectorAll('.client-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+  renderClient(clients[idx]);
+}
+
+function renderClient(c) {
+  document.getElementById('tb-avatar').textContent = c.initials;
+  document.getElementById('tb-avatar').className = 'topbar-avatar ' + c.avClass;
+  document.getElementById('tb-name').textContent = c.name;
+  document.getElementById('tb-meta').textContent = c.meta;
+  const [badgeText, badgeClass] = c.badge;
+  const badgeEl = document.getElementById('tb-badge');
+  badgeEl.textContent = badgeText;
+  badgeEl.className = 'badge ' + badgeClass;
+
+  const labels = ['m-weight','m-diet','m-training','m-sleep'];
+  c.metrics.forEach((v, i) => { document.getElementById(labels[i]).textContent = v; });
+  const subLabels = ['m-weight-sub','m-diet-sub','m-training-sub','m-sleep-sub'];
+  c.metaSubs.forEach(([txt, cls], i) => {
+    const el = document.getElementById(subLabels[i]);
+    el.textContent = txt;
+    el.className = 'metric-sub ' + cls;
+  });
+
+  document.getElementById('checkin-date').textContent = c.checkin.date;
+  document.getElementById('ci-weight').textContent = c.checkin.weight;
+  document.getElementById('ci-sleep').textContent = c.checkin.sleep;
+  document.getElementById('ci-stress').textContent = c.checkin.stress;
+  document.getElementById('ci-diet').textContent = c.checkin.diet;
+  document.getElementById('ci-training').textContent = c.checkin.training;
+  document.getElementById('ci-message').textContent = c.message;
+
+  renderTrends(c.trends);
+  resetAI();
+}
+
+function renderTrends(trends) {
+  const colors = ['#3266ad', '#3B6D11', '#BA7517'];
+  const container = document.getElementById('trend-bars');
+  container.innerHTML = '';
+  trends.forEach((t, i) => {
+    const pct = t.vals[t.vals.length - 1];
+    const div = document.createElement('div');
+    div.className = 'bar-row';
+    div.innerHTML = `<div class="bar-label-row"><span>${t.label}</span><span>${pct}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colors[i]};"></div></div>`;
+    container.appendChild(div);
+  });
+}
+
+function resetAI() {
+  document.getElementById('ai-status-label').textContent = 'Ready to analyse';
+  document.getElementById('ai-loader').classList.add('hidden');
+  document.getElementById('ai-summary-box').classList.add('hidden');
+  document.getElementById('ai-recs-section').classList.add('hidden');
+  document.getElementById('coach-feedback-section').classList.add('hidden');
+  document.getElementById('ai-flags-row').innerHTML = '';
+  document.getElementById('coach-input').value = '';
+  document.getElementById('analyse-btn').disabled = false;
+  document.getElementById('analyse-btn').textContent = '';
+  document.getElementById('analyse-btn').innerHTML = '<i class="ti ti-sparkles" aria-hidden="true"></i> Analyse ↗';
+}
+
+function runAnalysis() {
+  const c = clients[activeIdx];
+  document.getElementById('analyse-btn').disabled = true;
+  document.getElementById('analyse-btn').innerHTML = '<i class="ti ti-loader-2" aria-hidden="true"></i> Analysing...';
+  document.getElementById('ai-status-label').textContent = 'Synthesising client data...';
+  document.getElementById('ai-loader').classList.remove('hidden');
+  document.getElementById('ai-summary-box').classList.add('hidden');
+  document.getElementById('ai-recs-section').classList.add('hidden');
+
+  setTimeout(() => {
+    document.getElementById('ai-loader').classList.add('hidden');
+    document.getElementById('ai-status-label').textContent = 'Analysis complete';
+    document.getElementById('ai-summary-box').classList.remove('hidden');
+    document.getElementById('ai-summary-box').textContent = c.aiSummary;
+
+    const flagsRow = document.getElementById('ai-flags-row');
+    flagsRow.innerHTML = '';
+    c.flags.forEach(f => {
+      const tag = document.createElement('span');
+      tag.className = 'ai-tag';
+      tag.textContent = f;
+      flagsRow.appendChild(tag);
+    });
+
+    const recsContainer = document.getElementById('ai-recs');
+    recsContainer.innerHTML = '';
+    c.recs.forEach(r => {
+      const div = document.createElement('div');
+      div.className = `rec-item ${r.type}`;
+      div.innerHTML = `<i class="ti ${r.icon} rec-icon" aria-hidden="true"></i><div><div class="rec-cat">${r.cat}</div><div class="rec-text">${r.text}</div></div>`;
+      recsContainer.appendChild(div);
+    });
+
+    document.getElementById('ai-recs-section').classList.remove('hidden');
+    document.getElementById('coach-feedback-section').classList.remove('hidden');
+    document.getElementById('analyse-btn').innerHTML = '<i class="ti ti-refresh" aria-hidden="true"></i> Re-analyse ↗';
+    document.getElementById('analyse-btn').disabled = false;
+    analysisRun = true;
+  }, 1800);
+}
+
+function refineAnalysis() {
+  const input = document.getElementById('coach-input').value.trim();
+  if (!input) return;
+  const c = clients[activeIdx];
+  document.getElementById('ai-status-label').textContent = 'Refining with your input...';
+  document.getElementById('ai-loader').classList.remove('hidden');
+  document.getElementById('ai-summary-box').classList.add('hidden');
+  document.getElementById('ai-recs-section').classList.add('hidden');
+
+  setTimeout(() => {
+    document.getElementById('ai-loader').classList.add('hidden');
+    document.getElementById('ai-status-label').textContent = 'Direction refined';
+    document.getElementById('ai-summary-box').classList.remove('hidden');
+    document.getElementById('ai-summary-box').textContent = c.aiSummary + ' [Refined based on coach observation: "' + input + '"] — Adjusted priority: focus communication strategy first, then training modifications.';
+    document.getElementById('ai-recs-section').classList.remove('hidden');
+  }, 1500);
+}
+
+function clearFeedback() {
+  document.getElementById('coach-input').value = '';
+}
+
+renderClient(clients[0]);
+</script>
